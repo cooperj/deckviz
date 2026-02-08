@@ -25,6 +25,9 @@ ARG USERNAME=ros
 ARG USER_UID=1000
 ARG USER_GID=${USER_UID}
 
+# Delete the Ubuntu account if its there, to prevent issues with jazzy.
+RUN id -u ubuntu >/dev/null 2>&1 && userdel -r ubuntu || true
+
 # Create the user and group if they don't exist, set permissions, and add sudo support
 RUN set -e; \
     # Create group if it doesn't exist
