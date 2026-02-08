@@ -20,20 +20,30 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Create a ros user that we can run inside the container instead of root.
+# Create a non-root user for running ROS inside the container
 ARG USERNAME=ros
 ARG USER_UID=1000
-ARG USER_GID=$USER_UID
+ARG USER_GID=${USER_UID}
 
-# Create a non-root user
-RUN groupadd --gid $USER_GID $USERNAME &&\
-    useradd -m -d /home/$USERNAME -s /bin/bash --uid $USER_UID --gid $USER_GID $USERNAME
-# own the home directory, configure perms
-RUN chown -R $USERNAME:$USERNAME /home/$USERNAME  &&\
-    chmod 700 /home/$USERNAME
-# Add sudo support for the non-root user
-RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME  &&\
-    chmod 0440 /etc/sudoers.d/$USERNAME 
+# Create the user and group if they don't exist, set permissions, and add sudo support
+RUN set -e; \
+    # Create group if it doesn't exist
+    if ! getent group ${USER_GID} >/dev/null; then \
+        groupadd --gid ${USER_GID} ${USERNAME}; \
+    fi; \
+    # Create user if it doesn't exist
+    if ! id -u ${USERNAME} >/dev/null 2>&1; then \
+        useradd -m -d /home/${USERNAME} -s /bin/bash \
+            --uid ${USER_UID} \
+            --gid ${USER_GID} \
+            ${USERNAME}; \
+    fi; \
+    # Fix ownership and permissions
+    chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}; \
+    chmod 700 /home/${USERNAME}; \
+    # Give sudo privileges without password
+    echo "${USERNAME} ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/${USERNAME}; \
+    chmod 0440 /etc/sudoers.d/${USERNAME}
 
 # Install VirtualGL
 RUN curl -L -O https://github.com/VirtualGL/virtualgl/releases/download/3.1.1/virtualgl_3.1.1_amd64.deb && \
@@ -64,26 +74,6 @@ RUN usermod -a -G dialout $USERNAME &&\
 # The dependencies stage sets up the base image for various dependencies that are not ROS packages. 
 # This stage is used to build a foundation with all necessary libraries and tools required.
 FROM base AS dependencies
-
-# # setup glog (google log): Adds the Google Logging library setup from the specified Dockerfile.
-# RUN mkdir -p /tmp/vendor && cd /tmp/vendor && wget -c https://github.com/google/glog/archive/refs/tags/v0.6.0.tar.gz  -O glog-0.6.0.tar.gz &&\
-#     tar -xzvf glog-0.6.0.tar.gz &&\
-#     cd glog-0.6.0 &&\
-#     mkdir build && cd build &&\
-#     cmake .. && make -j4 &&\
-#     sudo make install &&\
-#     sudo ldconfig &&\
-#     cd ../.. && rm -r glog-*
-
-# # setup magic_enum: Adds the Magic Enum library setup from the specified Dockerfile.
-# RUN mkdir -p /tmp/vendor && cd /tmp/vendor && wget -c https://github.com/Neargye/magic_enum/archive/refs/tags/v0.8.0.tar.gz -O  magic_enum-0.8.0.tar.gz &&\
-#     tar -xzvf magic_enum-0.8.0.tar.gz &&\
-#     cd magic_enum-0.8.0 &&\
-#     mkdir build && cd build &&\
-#     cmake .. && make -j4 &&\
-#     sudo make install &&\
-#     sudo ldconfig &&\
-#     cd ../.. && rm -r magic_enum*   
 
 # Setup Zenoh bridge
 ENV ZENOH_BRIDGE_VERSION=1.7.2
