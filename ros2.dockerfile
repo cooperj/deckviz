@@ -13,6 +13,7 @@ COPY .docker/ros2-apt-packages.lst /tmp/apt-packages.lst
 # Update the package list, upgrade installed packages, install the packages listed in apt-packages.lst,
 # remove unnecessary packages, clean up the APT cache, and remove the package list to reduce image size
 RUN apt-get update && \
+    apt-get dist-upgrade -y && \
     apt-get install -y --no-install-recommends gettext-base && \
     envsubst < /tmp/apt-packages.lst > /tmp/apt-packages.expanded && \
     apt-get install -y --no-install-recommends $(cat /tmp/apt-packages.expanded) && \

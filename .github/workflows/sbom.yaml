@@ -7,7 +7,8 @@ on:
 
 jobs:
   sbom:
-    name: Generate SBOM for ${{ matrix.tag }}
+    name: Generate SBOM for ${{ matrix.tag }} (Build ${{ github.event.workflow_run.id }})
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     strategy:
       matrix:
