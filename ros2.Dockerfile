@@ -62,25 +62,25 @@ RUN usermod -a -G dialout $USERNAME &&\
 # This stage is used to build a foundation with all necessary libraries and tools required.
 FROM base AS dependencies
 
-# setup glog (google log): Adds the Google Logging library setup from the specified Dockerfile.
-RUN mkdir -p /tmp/vendor && cd /tmp/vendor && wget -c https://github.com/google/glog/archive/refs/tags/v0.6.0.tar.gz  -O glog-0.6.0.tar.gz &&\
-    tar -xzvf glog-0.6.0.tar.gz &&\
-    cd glog-0.6.0 &&\
-    mkdir build && cd build &&\
-    cmake .. && make -j4 &&\
-    sudo make install &&\
-    sudo ldconfig &&\
-    cd ../.. && rm -r glog-*
+# # setup glog (google log): Adds the Google Logging library setup from the specified Dockerfile.
+# RUN mkdir -p /tmp/vendor && cd /tmp/vendor && wget -c https://github.com/google/glog/archive/refs/tags/v0.6.0.tar.gz  -O glog-0.6.0.tar.gz &&\
+#     tar -xzvf glog-0.6.0.tar.gz &&\
+#     cd glog-0.6.0 &&\
+#     mkdir build && cd build &&\
+#     cmake .. && make -j4 &&\
+#     sudo make install &&\
+#     sudo ldconfig &&\
+#     cd ../.. && rm -r glog-*
 
-# setup magic_enum: Adds the Magic Enum library setup from the specified Dockerfile.
-RUN mkdir -p /tmp/vendor && cd /tmp/vendor && wget -c https://github.com/Neargye/magic_enum/archive/refs/tags/v0.8.0.tar.gz -O  magic_enum-0.8.0.tar.gz &&\
-    tar -xzvf magic_enum-0.8.0.tar.gz &&\
-    cd magic_enum-0.8.0 &&\
-    mkdir build && cd build &&\
-    cmake .. && make -j4 &&\
-    sudo make install &&\
-    sudo ldconfig &&\
-    cd ../.. && rm -r magic_enum*   
+# # setup magic_enum: Adds the Magic Enum library setup from the specified Dockerfile.
+# RUN mkdir -p /tmp/vendor && cd /tmp/vendor && wget -c https://github.com/Neargye/magic_enum/archive/refs/tags/v0.8.0.tar.gz -O  magic_enum-0.8.0.tar.gz &&\
+#     tar -xzvf magic_enum-0.8.0.tar.gz &&\
+#     cd magic_enum-0.8.0 &&\
+#     mkdir build && cd build &&\
+#     cmake .. && make -j4 &&\
+#     sudo make install &&\
+#     sudo ldconfig &&\
+#     cd ../.. && rm -r magic_enum*   
 
 # Setup Zenoh bridge
 ENV ZENOH_BRIDGE_VERSION=1.7.2
@@ -113,6 +113,7 @@ RUN echo 'export PATH="/usr/games:$PATH"' >> ~/.bashrc
 # sort out dotfiles
 COPY ./.docker/tmux.conf /home/ros/.tmux.conf
 RUN echo "alias cls=clear" >> ~/.bashrc
+RUN echo "alias q=exit" >> ~/.bashrc
 RUN echo "alias spheres=/opt/VirtualGL/bin/glxspheres64" >> ~/.bashrc
 RUN echo ". /opt/ros/humble/setup.bash" >> ~/.bashrc
 
