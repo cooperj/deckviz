@@ -107,7 +107,7 @@ RUN python3 -m pip install pipx && \
     python3 -m pipx ensurepath
 
 # setup tmule 
-RUN /home/${USERNAME}/.local/bin/pipx install tmule
+# RUN /home/ros/.local/bin/pipx install tmule
 
 RUN echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 RUN echo 'export PATH="/usr/games:$PATH"' >> ~/.bashrc
