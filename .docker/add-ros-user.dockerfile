@@ -29,8 +29,7 @@ RUN set -e; \
 
 # Fix ownership and perms
 RUN set -e; \
-    GROUP_NAME="$(cat /tmp/ros-group-name)"; \
-    chown -R "${USERNAME}:${GROUP_NAME}" "/home/${USERNAME}"; \
+    chown -R "${USERNAME}:${USERNAME}" "/home/${USERNAME}"; \
     chmod 700 "/home/${USERNAME}"
 
 # Configure new user for sudo
