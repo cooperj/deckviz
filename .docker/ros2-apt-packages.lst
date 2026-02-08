@@ -62,7 +62,6 @@ ros-${ROS_DISTRO}-rviz2*
 ros-${ROS_DISTRO}-teleop-twist-joy
 ros-${ROS_DISTRO}-teleop-twist-keyboard
 ros-${ROS_DISTRO}-xacro
-ros-${ROS_DISTRO}-zenoh-bridge-dds
 software-properties-common
 sudo
 swig

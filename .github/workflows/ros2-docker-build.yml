@@ -15,7 +15,6 @@ jobs:
       matrix:
         tag:
           - humble
-          - jazzy
 
     permissions:
       contents: read
