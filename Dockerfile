@@ -96,37 +96,8 @@ RUN cd /tmp; \
     ldconfig && \
     rm -rf zenoh-*
 
-# This stage is named 'sourcefilter' and is based on the 'base' image.
-# It performs the following actions:
-# 1. Creates a directory /tmp/src/ to store source files.
-# 2. Copies all .repos files from the ./.docker directory to /tmp/.docker/.
-# 3. Changes the working directory to /tmp/src and imports repositories listed in the .repos files using vcs.
-# 4. Pulls the latest changes for all imported repositories.
-FROM base AS sourcefilter
-RUN mkdir -p /tmp/src/
-COPY ./.docker/*.repos* /tmp/.docker/
-RUN cd /tmp/src && for r in /tmp/.docker/*.repos; do vcs import < $r ; done
-RUN cd /tmp/src && vcs pull
-# remove everything that isn't package.xml
-RUN find /tmp/src -type f \! -name "package.xml" -print | xargs rm -rf
-
-# This Dockerfile is designed to build a ROS (Robot Operating System) workspace.
-# It consists of multiple stages to optimize the build process and reduce the final image size.
-# 
-# The stages are as follows:
-# 1. depinstaller: Installs the necessary dependencies for the ROS workspace by copying a reduced source tree and using rosdep.
-# 2. depbuilder: Copies additional repository and script files, imports the source tree, and builds the workspace.
-# 
-# The output of depbuilder is a Docker image with the ROS workspace built and ready for use.
-FROM vendor_base AS depinstaller
-# copy the reduced source tree (only package.xml) from previous stage
-COPY --from=sourcefilter /tmp/src /tmp/src
 RUN rosdep update --rosdistro=${ROS_DISTRO} && apt-get update
 RUN rosdep install --from-paths /tmp/src --ignore-src -r -y && rm -rf /tmp/src && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/src
-
-FROM depinstaller AS depbuilder
-COPY .docker/*.repos* .docker/*.sh /tmp/.docker/
-
 
 # install src dependencies
 RUN mkdir -p /opt/ros/coops/src
@@ -145,7 +116,7 @@ RUN cd /opt/ros/coops; colcon build && \
     rm -rf /opt/ros/coops/src/ /opt/ros/coops/build/ /opt/ros/coops/log/
 
 # now also copy in all sources and build and install them
-FROM depbuilder AS compiled
+FROM vendor_base AS compiled
 
 # Switch to the ros user and then configure the environment
 USER ros
