@@ -1,7 +1,9 @@
 ARG BASE_IMAGE=ros:humble
+ARG ROS_DISTRO=humble
 FROM ${BASE_IMAGE} AS base
 
 USER root
+ENV ROS_DISTRO=${ROS_DISTRO}
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Copy the list of APT packages to be installed from the local directory to the container
@@ -10,9 +12,10 @@ COPY .docker/ros2-apt-packages.lst /tmp/apt-packages.lst
 # Update the package list, upgrade installed packages, install the packages listed in apt-packages.lst,
 # remove unnecessary packages, clean up the APT cache, and remove the package list to reduce image size
 RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -qq -y --no-install-recommends \
-        `cat /tmp/apt-packages.lst` && \
+    apt-get install -y --no-install-recommends gettext-base && \
+    envsubst < /tmp/apt-packages.lst > /tmp/apt-packages.expanded && \
+    apt-get install -y --no-install-recommends $(cat /tmp/apt-packages.expanded) && \
+    apt-get purge -y gettext-base && \
     apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
