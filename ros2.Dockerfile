@@ -95,16 +95,16 @@ RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
 # now also copy in all sources and build and install them
 FROM dependencies AS workspace
 
-# Config pipx
-RUN python3 -m pip install pipx && \
-    python3 -m pipx ensurepath
-    
 # Switch to the ros user and then configure the environment
 USER ros
 
 # Add a custom prompt, tmux configuration and source ros install
 ENV PATH=/home/$USERNAME/.local/bin:$PATH
 RUN echo "export PS1='\[\e[0;33m\]deckviz ➜ \[\e[0;32m\]\u@\h\[\e[0;34m\]:\w\[\e[0;37m\]\$ '" >> ~/.bashrc
+
+# Config pipx
+RUN python3 -m pip install pipx && \
+    python3 -m pipx ensurepath
 
 # setup tmule 
 RUN /home/${USERNAME}/.local/bin/pipx install tmule

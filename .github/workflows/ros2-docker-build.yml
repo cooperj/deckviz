@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Checkout git repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Determine branch name
         run: echo "BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
@@ -68,12 +68,15 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build and Push Docker Image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./ros2.Dockerfile
           platforms: linux/amd64
           push: true
+          sbom: true
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/cache:${{ matrix.tag }}
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/cache:${{ matrix.tag }},mode=max
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
