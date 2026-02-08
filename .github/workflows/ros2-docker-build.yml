@@ -8,6 +8,12 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      no-cache:
+        description: "Disable Docker Cache"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -76,6 +82,7 @@ jobs:
           platforms: linux/amd64
           push: true
           sbom: true
+          no-cache: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.no-cache == 'true' }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/cache:${{ matrix.tag }}
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/cache:${{ matrix.tag }},mode=max
           tags: ${{ steps.meta.outputs.tags }}
@@ -84,3 +91,33 @@ jobs:
             BASE_IMAGE=ros:${{ matrix.tag }}
             BRANCH=${{ env.BRANCH }}
             ROS_DISTRO=${{ matrix.tag }}
+
+      - name: Generate SBOM with Syft
+        uses: anchore/sbom-action@v0
+        with:
+          image: ghcr.io/${{ steps.docker_image_name.outputs.docker_image }}:${{ matrix.tag }}
+          format: spdx-json
+          output-file: sbom-${{ matrix.tag }}.spdx.json
+
+      - name: Scan SBOM with Grype
+        uses: anchore/scan-action@v3
+        with:
+          sbom: sbom-${{ matrix.tag }}.spdx.json
+          fail-build: false
+          severity-cutoff: high
+
+      - name: Upload SBOM as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ matrix.tag }}
+          path: |
+            sbom-${{ matrix.tag }}.spdx.json
+            results.sarif
+          retention-days: 90
+
+      - name: Upload vulnerability report to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: results.sarif
+          
