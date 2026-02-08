@@ -1,4 +1,3 @@
-
 apt-transport-https
 build-essential
 ca-certificates
@@ -62,11 +61,8 @@ ros-humble-nav*
 ros-humble-rmw-cyclonedds-cpp
 ros-humble-robot-state-publisher* 
 ros-humble-rviz2*
-ros-humble-simulation
 ros-humble-teleop-twist-joy
 ros-humble-teleop-twist-keyboard
-ros-humble-turtlebot4-desktop
-ros-humble-turtlebot4-simulator
 ros-humble-xacro
 ros-humble-zenoh-bridge-dds
 software-properties-common

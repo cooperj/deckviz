@@ -2,8 +2,8 @@
 
 set -e
 
-DECK_ROS2_DIR=${HOME}/deck-ros2
-DECK_ROS2_REPO=https://github.com/cooperj/deck-ros2.git
+DECK_ROS2_DIR=${HOME}/deckviz
+DECK_ROS2_REPO=https://github.com/cooperj/deckviz.git
 CONFIGS_DIR=${DECK_ROS2_DIR}/configs
 ENV_FILE=${CONFIGS_DIR}/.env
 
@@ -45,7 +45,6 @@ for file in ${CONFIGS_DIR}/*.desktop.in; do
     echo "Configuring ${dest_file} from ${file}"
     export ICON_PATH=${CONFIGS_DIR}/icons
     export LAUNCH_SCRIPT=${DECK_ROS2_DIR}/connect-robot.sh
-    export SIM_SCRIPT=${DECK_ROS2_DIR}/connect-sim.sh
     envsubst < ${file} > ${dest_file}
 done
 

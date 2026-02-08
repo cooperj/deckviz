@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=lcas.lincoln.ac.uk/lcas/ros:jammy-humble
+ARG BASE_IMAGE=ros:humble
 
 FROM ${BASE_IMAGE} AS base
 
@@ -87,7 +87,7 @@ RUN mkdir -p /tmp/vendor && cd /tmp/vendor && wget -c https://github.com/Neargye
     cd ../.. && rm -r magic_enum*   
 
 # Setup Zenoh bridge
-ENV ZENOH_BRIDGE_VERSION=1.2.1
+ENV ZENOH_BRIDGE_VERSION=1.7.2
 RUN cd /tmp; \
     curl -L -O https://github.com/eclipse-zenoh/zenoh-plugin-ros2dds/releases/download/${ZENOH_BRIDGE_VERSION}/zenoh-plugin-ros2dds-${ZENOH_BRIDGE_VERSION}-x86_64-unknown-linux-gnu-standalone.zip; \
     unzip zenoh-plugin-ros2dds-*.zip && \
@@ -151,7 +151,7 @@ FROM depbuilder AS compiled
 USER ros
 
 # Add a custom prompt, tmux configuration and source ros install
-RUN echo "export PS1='\[\e[0;33m\]deck-ros2 ➜ \[\e[0;32m\]\u@\h\[\e[0;34m\]:\w\[\e[0;37m\]\$ '" >> ~/.bashrc
+RUN echo "export PS1='\[\e[0;33m\]deckviz ➜ \[\e[0;32m\]\u@\h\[\e[0;34m\]:\w\[\e[0;37m\]\$ '" >> ~/.bashrc
 
 # setup tmule 
 RUN pip3 install tmule

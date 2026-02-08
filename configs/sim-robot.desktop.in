@@ -1,8 +1,0 @@
-[Desktop Entry]
-Version=1.0
-Type=Application
-Name=Simulate a Turtlebot4
-Exec=bash ${SIM_SCRIPT}
-Icon=${ICON_PATH}/robot.png
-Terminal=true
-Categories=Utility;

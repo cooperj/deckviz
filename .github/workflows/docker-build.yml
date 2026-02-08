@@ -70,8 +70,8 @@ jobs:
         file: ./Dockerfile
         platforms: linux/amd64
         push: true
-        cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/cache/${{ steps.docker_image_name.outputs.docker_image }}:${{ matrix.tag }}
-        cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/cache/${{ steps.docker_image_name.outputs.docker_image }}:${{ matrix.tag }},mode=max
+        # cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/cache/${{ steps.docker_image_name.outputs.docker_image }}:${{ matrix.tag }}
+        # cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/cache/${{ steps.docker_image_name.outputs.docker_image }}:${{ matrix.tag }},mode=max
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         build-args: |
