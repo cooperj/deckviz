@@ -3,18 +3,18 @@ ARG USER_UID
 ARG USER_GID
 
 # Delete the Ubuntu account if it exists, to prevent issues with jazzy.
-RUN set -e; \
-    if id -u ubuntu >/dev/null 2>&1; then \
-        echo "Removing existing ubuntu user"; \
-        userdel -r ubuntu || true; \
-    fi; \
-    if getent group 1000 >/dev/null 2>&1; then \
-        GROUP_NAME="$(getent group 1000 | cut -d: -f1)"; \
-        if [ "${GROUP_NAME}" != "${USERNAME}" ]; then \
-            echo "Deleting existing group ${GROUP_NAME} (GID 1000)"; \
-            groupdel "${GROUP_NAME}" || true; \
-        fi; \
-    fi
+# RUN set -e; \
+#     if id -u ubuntu >/dev/null 2>&1; then \
+#         echo "Removing existing ubuntu user"; \
+#         userdel -r ubuntu || true; \
+#     fi; \
+#     if getent group 1000 >/dev/null 2>&1; then \
+#         GROUP_NAME="$(getent group 1000 | cut -d: -f1)"; \
+#         if [ "${GROUP_NAME}" != "${USERNAME}" ]; then \
+#             echo "Deleting existing group ${GROUP_NAME} (GID 1000)"; \
+#             groupdel "${GROUP_NAME}" || true; \
+#         fi; \
+#     fi
 
 # Create the group and user
 RUN set -e; \
