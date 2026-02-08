@@ -107,7 +107,7 @@ RUN echo 'export PATH="/usr/games:$PATH"' >> ~/.bashrc
 ENV PATH=/home/$USERNAME/.local/bin:$PATH
 RUN python3 -m pip install --user pipx && \
     python3 -m pipx ensurepath && \
-    ~/.local/bin/pipx install tmule
+    /home/$USERNAME/.local/bin/pipx install tmule
 
 # sort out dotfiles
 COPY ./.docker/tmux.conf /home/ros/.tmux.conf
