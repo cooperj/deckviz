@@ -28,7 +28,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-      security-events: read
+      security-events: write
 
     steps:
       - name: Checkout git repository
