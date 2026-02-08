@@ -8,7 +8,6 @@ evemu-tools
 evtest
 g++ 
 git
-ignition-fortress
 input-utils
 joystick
 jstest-gtk
@@ -51,7 +50,6 @@ ros-dev-tools
 ros-humble-ament-cmake
 ros-humble-cartographer*
 ros-humble-cyclonedds
-ros-humble-gazebo-*
 ros-humble-image-*
 ros-humble-imu-tools
 ros-humble-irobot-create-nodes

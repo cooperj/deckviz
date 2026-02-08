@@ -1,13 +1,11 @@
 ARG BASE_IMAGE=ros:humble
-
 FROM ${BASE_IMAGE} AS base
 
-# making the standard global variables available for target-specific builds
 USER root
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Copy the list of APT packages to be installed from the local directory to the container
-COPY .docker/apt-packages.lst /tmp/apt-packages.lst
+COPY .docker/ros2-apt-packages.lst /tmp/apt-packages.lst
 
 # Update the package list, upgrade installed packages, install the packages listed in apt-packages.lst,
 # remove unnecessary packages, clean up the APT cache, and remove the package list to reduce image size
@@ -60,11 +58,9 @@ RUN usermod -a -G dialout $USERNAME &&\
     usermod -a -G input $USERNAME &&\
     usermod -a -G vglusers $USERNAME
 
-# The vendor_base stage sets up the base image and includes additional Dockerfiles
-# for various dependencies that are not ROS packages. 
-# This stage is used to build a foundation with all
-# necessary libraries and tools required.
-FROM base AS vendor_base
+# The dependencies stage sets up the base image for various dependencies that are not ROS packages. 
+# This stage is used to build a foundation with all necessary libraries and tools required.
+FROM base AS dependencies
 
 # setup glog (google log): Adds the Google Logging library setup from the specified Dockerfile.
 RUN mkdir -p /tmp/vendor && cd /tmp/vendor && wget -c https://github.com/google/glog/archive/refs/tags/v0.6.0.tar.gz  -O glog-0.6.0.tar.gz &&\
@@ -96,27 +92,12 @@ RUN cd /tmp; \
     ldconfig && \
     rm -rf zenoh-*
 
-RUN rosdep update --rosdistro=${ROS_DISTRO} && apt-get update
-RUN rosdep install --from-paths /tmp/src --ignore-src -r -y && rm -rf /tmp/src && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/src
-
-# install src dependencies
-RUN mkdir -p /opt/ros/coops/src
-COPY ./src /opt/ros/coops/src
-
 RUN . /opt/ros/humble/setup.sh && \
     apt update && \
-    rosdep --rosdistro=${ROS_DISTRO} update && \
-    cd /opt/ros/coops/src && \
-    vcs pull && \
-    rosdep install --from-paths . -i -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN cd /opt/ros/coops; colcon build && \
-    rm -rf /opt/ros/coops/src/ /opt/ros/coops/build/ /opt/ros/coops/log/
+    rosdep --rosdistro=${ROS_DISTRO} update
 
 # now also copy in all sources and build and install them
-FROM vendor_base AS compiled
+FROM dependencies AS workspace
 
 # Switch to the ros user and then configure the environment
 USER ros
@@ -133,8 +114,7 @@ RUN echo 'export PATH="/usr/games:$PATH"' >> ~/.bashrc
 COPY ./.docker/tmux.conf /home/ros/.tmux.conf
 RUN echo "alias cls=clear" >> ~/.bashrc
 RUN echo "alias spheres=/opt/VirtualGL/bin/glxspheres64" >> ~/.bashrc
-RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
-RUN echo "source /opt/ros/coops/install/setup.bash" >> ~/.bashrc
+RUN echo ". /opt/ros/humble/setup.bash" >> ~/.bashrc
 
 WORKDIR /home/ros/ws
 ENV SHELL=/bin/bash
