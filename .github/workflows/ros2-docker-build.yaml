@@ -28,7 +28,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-      security-events: write
 
     steps:
       - name: Checkout git repository
@@ -92,34 +91,3 @@ jobs:
             BASE_IMAGE=ros:${{ matrix.tag }}
             BRANCH=${{ env.BRANCH }}
             ROS_DISTRO=${{ matrix.tag }}
-
-      - name: Generate SBOM with Syft
-        uses: anchore/sbom-action@v0
-        with:
-          image: ghcr.io/${{ steps.docker_image_name.outputs.docker_image }}:${{ matrix.tag }}
-          format: spdx-json
-          output-file: sbom-${{ matrix.tag }}.spdx.json
-
-      - name: Scan SBOM with Grype
-        id: grype
-        uses: anchore/scan-action@v7
-        with:
-          sbom: sbom-${{ matrix.tag }}.spdx.json
-          fail-build: false
-          severity-cutoff: high
-
-      - name: Upload SBOM as artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: sbom-${{ matrix.tag }}
-          path: |
-            sbom-${{ matrix.tag }}.spdx.json
-            ${{ steps.grype.outputs.sarif }}
-          retention-days: 90
-
-      - name: Upload vulnerability report to GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
-        if: always()
-        with:
-          sarif_file: ${{ steps.grype.outputs.sarif }}
-          
