@@ -2,29 +2,30 @@ ARG USERNAME
 ARG USER_UID
 ARG USER_GID
 
-# Delete the Ubuntu account if its there, to prevent issues with jazzy.
+# Delete the Ubuntu account if it exists, to prevent issues with jazzy.
 RUN set -e; \
-    if getent group "${USER_GID}" >/dev/null; then \
-        GROUP_NAME="$(getent group "${USER_GID}" | cut -d: -f1)"; \
-        echo "Using existing group ${GROUP_NAME} (GID ${USER_GID})"; \
-    else \
-        GROUP_NAME="${USERNAME}"; \
-        groupadd --gid "${USER_GID}" "${GROUP_NAME}"; \
-        echo "Created group ${GROUP_NAME} (GID ${USER_GID})"; \
+    if id -u ubuntu >/dev/null 2>&1; then \
+        echo "Removing existing ubuntu user"; \
+        userdel -r ubuntu || true; \
     fi; \
-    echo "${GROUP_NAME}" > /tmp/ros-group-name 
-
-# create ros user
-RUN set -e; \
-    if ! id -u "${USERNAME}" >/dev/null 2>&1; then \
-        useradd \
-          --uid "${USER_UID}" \
-          --gid "${USER_GID}" \
-          --create-home \
-          --home-dir "/home/${USERNAME}" \
-          --shell /bin/bash \
-          "${USERNAME}"; \
+    if getent group 1000 >/dev/null 2>&1; then \
+        GROUP_NAME="$(getent group 1000 | cut -d: -f1)"; \
+        if [ "${GROUP_NAME}" != "${USERNAME}" ]; then \
+            echo "Deleting existing group ${GROUP_NAME} (GID 1000)"; \
+            groupdel "${GROUP_NAME}" || true; \
+        fi; \
     fi
+
+# Create the group and user
+RUN set -e; \
+    groupadd --gid "${USER_GID}" "${USERNAME}" 2>/dev/null || true; \
+    useradd \
+      --uid "${USER_UID}" \
+      --gid "${USER_GID}" \
+      --create-home \
+      --home-dir "/home/${USERNAME}" \
+      --shell /bin/bash \
+      "${USERNAME}"
 
 # Fix ownership and perms
 RUN set -e; \
