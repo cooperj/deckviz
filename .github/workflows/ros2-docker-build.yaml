@@ -81,7 +81,6 @@ jobs:
           file: ./ros2.dockerfile
           platforms: linux/amd64
           push: true
-          sbom: true
           no-cache: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.no-cache == 'true' }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/cache:${{ matrix.tag }}
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/cache:${{ matrix.tag }},mode=max
