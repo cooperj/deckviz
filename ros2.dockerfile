@@ -1,7 +1,6 @@
 # syntax = devthefuture/dockerfile-x:v1.5.3
 
-ARG BASE_IMAGE=ros:humble
-ARG ROS_DISTRO=humble
+INCLUDE_ARGS .docker/config.env
 FROM ${BASE_IMAGE} AS base
 
 USER root

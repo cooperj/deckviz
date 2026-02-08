@@ -1,8 +1,3 @@
-# Create a non-root user for running ROS inside the container
-ARG USERNAME=ros
-ARG USER_UID=1000
-ARG USER_GID=${USER_UID}
-
 # Delete the Ubuntu account if its there, to prevent issues with jazzy.
 RUN id -u ubuntu >/dev/null 2>&1 && userdel -r ubuntu || true
 
@@ -27,11 +22,11 @@ RUN set -e; \
     chmod 0440 /etc/sudoers.d/${USERNAME}
 
 # Add user groups
-RUN usermod -a -G dialout $USERNAME &&\
-    usermod -a -G video $USERNAME &&\
-    usermod -a -G audio $USERNAME &&\
-    usermod -a -G plugdev $USERNAME &&\
-    usermod -a -G staff $USERNAME &&\
-    usermod -a -G sudo $USERNAME &&\
-    usermod -a -G input $USERNAME &&\
-    usermod -a -G vglusers $USERNAME
+RUN usermod -a -G dialout ${USERNAME} &&\
+    usermod -a -G video ${USERNAME} &&\
+    usermod -a -G audio ${USERNAME} &&\
+    usermod -a -G plugdev ${USERNAME} &&\
+    usermod -a -G staff ${USERNAME} &&\
+    usermod -a -G sudo ${USERNAME} &&\
+    usermod -a -G input ${USERNAME} &&\
+    usermod -a -G vglusers ${USERNAME}
