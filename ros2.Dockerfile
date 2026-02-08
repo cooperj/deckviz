@@ -102,12 +102,13 @@ USER ros
 ENV PATH=/home/$USERNAME/.local/bin:$PATH
 RUN echo "export PS1='\[\e[0;33m\]deckviz ➜ \[\e[0;32m\]\u@\h\[\e[0;34m\]:\w\[\e[0;37m\]\$ '" >> ~/.bashrc
 
-# Config pipx
-RUN python3 -m pip install pipx && \
-    python3 -m pipx ensurepath
-
 # setup tmule 
-# RUN /home/ros/.local/bin/pipx install tmule
+RUN PY_VERSION=$(python3 -c "import sys; print(f'{sys.version_info[0]}.{sys.version_info[1]}')") && \
+    if [ "$(echo $PY_VERSION | awk -F. '{print $1$2}')" -ge 312 ]; then \
+        pip3 install --break-system-packages -U tmule; \
+    else \
+        pip3 install -U tmule; \
+    fi
 
 RUN echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 RUN echo 'export PATH="/usr/games:$PATH"' >> ~/.bashrc
