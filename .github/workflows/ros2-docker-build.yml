@@ -23,7 +23,7 @@ jobs:
       matrix:
         tag:
           - humble
-          - jazzy
+          #- jazzy
 
     permissions:
       contents: read
