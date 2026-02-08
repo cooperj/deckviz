@@ -122,3 +122,11 @@ RUN echo ". /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc
 
 WORKDIR /home/ros/ws
 ENV SHELL=/bin/bash
+
+LABEL org.opencontainers.image.title="deckviz"
+LABEL org.opencontainers.image.description="ROS2 for Steam Deck, For Teleoperation and Visualisation"
+LABEL org.opencontainers.image.authors="Josh Cooper <hi@joshc.uk>"
+LABEL org.opencontainers.image.url="https://github.com/cooperj/deckviz"
+LABEL org.opencontainers.image.source="https://github.com/cooperj/deckviz"
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+LABEL org.opencontainers.image.vendor="Josh Cooper <hi@joshc.uk>"

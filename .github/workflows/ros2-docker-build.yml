@@ -48,16 +48,10 @@ jobs:
           flavor: |
             latest=false
           labels: |
-            org.opencontainers.image.title=deckviz
-            org.opencontainers.image.description=ROS2 Docker Image (flavour: ${{ matrix.tag }}) for Steam Deck
-            org.opencontainers.image.authors=Josh Cooper <hi@joshc.uk>
             org.opencontainers.image.url=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.version=${{ github.ref_name }}
             org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.licenses=Apache-2.0
-            org.opencontainers.image.vendor=Josh Cooper <hi@joshc.uk>
-          # list of Docker images to use as base name for tags
           images: |
             ghcr.io/${{ steps.docker_image_name.outputs.docker_image }}
           tags: |
