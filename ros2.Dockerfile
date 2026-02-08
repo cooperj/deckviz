@@ -95,19 +95,22 @@ RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
 # now also copy in all sources and build and install them
 FROM dependencies AS workspace
 
+# Config pipx
+RUN python3 -m pip install pipx && \
+    python3 -m pipx ensurepath
+    
 # Switch to the ros user and then configure the environment
 USER ros
 
 # Add a custom prompt, tmux configuration and source ros install
+ENV PATH=/home/$USERNAME/.local/bin:$PATH
 RUN echo "export PS1='\[\e[0;33m\]deckviz ➜ \[\e[0;32m\]\u@\h\[\e[0;34m\]:\w\[\e[0;37m\]\$ '" >> ~/.bashrc
 
 # setup tmule 
+RUN /home/$USERNAME/.local/bin/pipx install tmule
+
 RUN echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 RUN echo 'export PATH="/usr/games:$PATH"' >> ~/.bashrc
-ENV PATH=/home/$USERNAME/.local/bin:$PATH
-RUN python3 -m pip install --user pipx && \
-    python3 -m pipx ensurepath && \
-    /home/$USERNAME/.local/bin/pipx install tmule
 
 # sort out dotfiles
 COPY ./.docker/tmux.conf /home/ros/.tmux.conf

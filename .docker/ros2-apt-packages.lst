@@ -22,9 +22,7 @@ libglvnd0
 libglx0
 libgtk-3-dev
 libssl-dev
-libssl-dev
 libtinyxml2-dev
-libusb-1.0-0-dev
 libusb-1.0*
 libx11-6
 libxext6
@@ -42,8 +40,6 @@ python3
 python3-matplotlib
 python3-pandas 
 python3-pip
-python3-pip
-python3-rosdep
 python3-rosdep
 python3-sphinx
 ros-dev-tools
