@@ -43,7 +43,7 @@ INCLUDE .docker/user-config.dockerfile
 INCLUDE .docker/tmule.dockerfile
 
 # Add a custom prompt, tmux configuration and source ros install
-ENV PATH=/home/$USERNAME/.local/bin:$PATH
+ENV PATH=/home/${USERNAME}/.local/bin:$PATH
 RUN echo ". /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc
 
 WORKDIR /home/ros/ws
