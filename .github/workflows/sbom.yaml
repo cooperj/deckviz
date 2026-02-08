@@ -1,64 +1,135 @@
 name: Generate SBOM
 
 on:
-  workflow_run:
-    workflows: ["Build ROS2 Docker Image"]
-    types: [completed]
+    workflow_run:
+        workflows: ["Build ROS2 Docker Image"]
+        types: [completed]
 
 jobs:
-  sbom:
-    name: Generate SBOM for ${{ matrix.tag }} (Build ${{ github.event.workflow_run.id }})
-    if: github.event.workflow_run.conclusion == 'success'
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        tag:
-          - humble
-          #- jazzy
+    sbom:
+        name: Generate SBOM for ${{ matrix.tag }} (Build #${{ github.event.workflow_run.id }})
+        if: github.event.workflow_run.conclusion == 'success'
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                tag:
+                    - humble
+                    #- jazzy
 
-    permissions:
-      contents: read
-      packages: read
-      security-events: write
+        permissions:
+            contents: read
+            packages: read
+            security-events: write
 
-    steps:
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+        steps:
+            - name: Login to GitHub Container Registry
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Generate image name
-        id: docker_image_name
-        run: echo "docker_image=${{ github.repository }}" | tr '[:upper:]' '[:lower:]' | sed 's/[^0-9a-zA-Z=_,\/]/-/g' >> ${GITHUB_OUTPUT}
+            - name: Generate image name
+              id: docker_image_name
+              run: echo "docker_image=${{ github.repository }}" | tr '[:upper:]' '[:lower:]' | sed 's/[^0-9a-zA-Z=_,\/]/-/g' >> ${GITHUB_OUTPUT}
 
-      - name: Generate SBOM with Syft
-        uses: anchore/sbom-action@v0
-        with:
-          image: ghcr.io/${{ steps.docker_image_name.outputs.docker_image }}:${{ matrix.tag }}
-          format: spdx-json
-          output-file: sbom-${{ matrix.tag }}.spdx.json
+            - name: Generate SBOM with Syft
+              uses: anchore/sbom-action@v0
+              with:
+                  image: ghcr.io/${{ steps.docker_image_name.outputs.docker_image }}:${{ matrix.tag }}
+                  format: spdx-json
+                  output-file: sbom-${{ matrix.tag }}.spdx.json
 
-      - name: Scan SBOM with Grype
-        id: grype
-        uses: anchore/scan-action@v7
-        with:
-          sbom: sbom-${{ matrix.tag }}.spdx.json
-          fail-build: false
-          severity-cutoff: high
+            - name: Install Deps
+              run: |
+                  # Install jq if not available
+                  sudo apt-get update && sudo apt-get install -y jq
+                  curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+                  grype version  # Verify installation
 
-      - name: Upload SBOM as artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: sbom-${{ matrix.tag }}
-          path: |
-            sbom-${{ matrix.tag }}.spdx.json
-            ${{ steps.grype.outputs.sarif }}
-          retention-days: 90
+            - name: Scan SBOM with Grype (JSON output)
+              id: grype_json
+              continue-on-error: true
+              run: |
+                  grype sbom:sbom-${{ matrix.tag }}.spdx.json -o json --file results-${{ matrix.tag }}.json
 
-      - name: Upload vulnerability report to GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
-        if: always()
-        with:
-          sarif_file: ${{ steps.grype.outputs.sarif }}
+            - name: Scan SBOM with Grype (SARIF output)
+              id: grype
+              uses: anchore/scan-action@v7
+              with:
+                  sbom: sbom-${{ matrix.tag }}.spdx.json
+                  fail-build: false
+                  severity-cutoff: high
+
+            - name: Generate actionable vulnerability report
+              run: |
+                  # Parse Grype JSON output and create actionable report
+                  cat results-${{ matrix.tag }}.json | jq -r '
+                    .matches[] | 
+                    select(.vulnerability.fix.state == "fixed") |
+                    {
+                      package: .artifact.name,
+                      version: .artifact.version,
+                      vulnerability: .vulnerability.id,
+                      severity: .vulnerability.severity,
+                      fixed_in: .vulnerability.fix.versions[0],
+                      description: .vulnerability.description
+                    }
+                  ' | jq -s 'group_by(.package) | map({
+                    package: .[0].package,
+                    current_version: .[0].version,
+                    vulnerabilities: map({
+                      id: .vulnerability,
+                      severity: .severity,
+                      fixed_in: .fixed_in
+                    })
+                  })' > actionable-${{ matrix.tag }}.json
+
+                  # Create human-readable markdown report
+                  cat > actionable-report-${{ matrix.tag }}.md << 'EOF'
+                  # Actionable Vulnerability Report for ${{ matrix.tag }}
+
+                  This report contains only vulnerabilities that have available fixes.
+
+                  ## Summary
+
+                  EOF
+
+                  FIXABLE_COUNT=$(cat actionable-${{ matrix.tag }}.json | jq 'length')
+                  TOTAL_COUNT=$(cat results-${{ matrix.tag }}.json | jq '.matches | length')
+
+                  echo "- **Total vulnerabilities found:** ${TOTAL_COUNT}" >> actionable-report-${{ matrix.tag }}.md
+                  echo "- **Packages with fixable vulnerabilities:** ${FIXABLE_COUNT}" >> actionable-report-${{ matrix.tag }}.md
+                  echo "" >> actionable-report-${{ matrix.tag }}.md
+                  echo "---" >> actionable-report-${{ matrix.tag }}.md
+                  echo "" >> actionable-report-${{ matrix.tag }}.md
+
+                  # Generate detailed table
+                  cat actionable-${{ matrix.tag }}.json | jq -r '
+                    .[] | 
+                    "## \(.package)\n\n" +
+                    "**Current version:** `\(.current_version)`\n\n" +
+                    "| Vulnerability | Severity | Fixed In |\n" +
+                    "|---------------|----------|----------|\n" +
+                    (.vulnerabilities[] | "| [\(.id)](https://nvd.nist.gov/vuln/detail/\(.id)) | **\(.severity)** | `\(.fixed_in)` |") +
+                    "\n\n"
+                  ' >> actionable-report-${{ matrix.tag }}.md
+
+            - name: Upload SBOM and reports
+              uses: actions/upload-artifact@v6
+              with:
+                  name: sbom-${{ matrix.tag }}
+                  path: |
+                      sbom-${{ matrix.tag }}.spdx.json
+                      results-${{ matrix.tag }}.json
+                      actionable-${{ matrix.tag }}.json
+                      actionable-report-${{ matrix.tag }}.md
+                      ${{ steps.grype.outputs.sarif }}
+                  retention-days: 90
+
+            - name: Upload vulnerability report to GitHub Security
+              uses: github/codeql-action/upload-sarif@v4
+              if: always()
+              with:
+                  sarif_file: ${{ steps.grype.outputs.sarif }}
+                  category: security-${{ matrix.tag }}
