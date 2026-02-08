@@ -92,7 +92,7 @@ RUN cd /tmp; \
     ldconfig && \
     rm -rf zenoh-*
 
-RUN . /opt/ros/humble/setup.sh && \
+RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
     apt update && \
     rosdep --rosdistro=${ROS_DISTRO} update
 
@@ -115,7 +115,7 @@ COPY ./.docker/tmux.conf /home/ros/.tmux.conf
 RUN echo "alias cls=clear" >> ~/.bashrc
 RUN echo "alias q=exit" >> ~/.bashrc
 RUN echo "alias spheres=/opt/VirtualGL/bin/glxspheres64" >> ~/.bashrc
-RUN echo ". /opt/ros/humble/setup.bash" >> ~/.bashrc
+RUN echo ". /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc
 
 WORKDIR /home/ros/ws
 ENV SHELL=/bin/bash
