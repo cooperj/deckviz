@@ -41,7 +41,7 @@ FROM dependencies AS workspace
 # Switch to the ros user and then configure the environment
 USER ros
 INCLUDE .docker/user-config.dockerfile
-INCLUDE .dockerfile/tmule.dockerfile
+INCLUDE .docker/tmule.dockerfile
 
 # Add a custom prompt, tmux configuration and source ros install
 ENV PATH=/home/$USERNAME/.local/bin:$PATH
