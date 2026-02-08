@@ -17,6 +17,7 @@ jobs:
       matrix:
         tag:
           - humble
+          - jazzy
 
     permissions:
       contents: read
@@ -46,7 +47,7 @@ jobs:
         with:
           flavor: |
             latest=false
-            labels: |
+          labels: |
             org.opencontainers.image.title=deckviz
             org.opencontainers.image.description=ROS2 Docker Image (flavour: ${{ matrix.tag }}) for Steam Deck
             org.opencontainers.image.authors=Josh Cooper <hi@joshc.uk>
